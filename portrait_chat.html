@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbprint — Portrait Navigator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0d0f; --surface: #16161a; --surface2: #1e1e24;
+    --border: #2a2a35; --text: #e8e8f0; --muted: #7a7a9a;
+    --accent: #7c6af7; --accent-dim: #3d3580; --gold: #c9a84c;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; height: 100vh; display: flex; flex-direction: column; }
+
+  nav { padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .wordmark { font-size: 1rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); }
+  .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.9rem; font-family: 'Georgia', serif; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .nav-btn:hover { color: var(--text); border-color: var(--muted); }
+  .nav-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  /* Setup overlay (shown when no portrait loaded) */
+  .setup-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 2rem;
+  }
+  .setup-overlay.hidden { display: none; }
+  .setup-box { max-width: 560px; width: 100%; }
+  .setup-box h2 { font-size: 1.6rem; font-weight: normal; margin-bottom: 0.75rem; }
+  .setup-box p { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .setup-box textarea {
+    width: 100%; min-height: 220px; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text);
+    font-family: 'Georgia', serif; font-size: 0.9rem; padding: 1rem;
+    resize: vertical; margin-bottom: 1rem;
+  }
+  .setup-box textarea:focus { outline: none; border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent); color: white; border: none;
+    padding: 0.8rem 1.8rem; font-family: 'Georgia', serif; font-size: 0.9rem;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--accent-dim); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<style>
+  /* Portrait panel */
+  .portrait-panel {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 380px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    overflow-y: auto; padding: 2rem 1.5rem;
+    transform: translateX(100%); transition: transform 0.3s ease;
+    z-index: 50;
+  }
+  .portrait-panel.open { transform: translateX(0); }
+  .portrait-panel h3 { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+  .portrait-panel pre { font-family: 'Georgia', serif; font-size: 0.85rem; color: var(--muted); white-space: pre-wrap; line-height: 1.7; }
+
+  /* Chat area */
+  .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .msg { max-width: 680px; }
+  .msg.user { align-self: flex-end; }
+  .msg.assistant { align-self: flex-start; }
+
+  .msg-bubble {
+    padding: 0.9rem 1.2rem; font-size: 0.95rem; line-height: 1.7;
+    border: 1px solid var(--border);
+  }
+  .msg.user .msg-bubble { background: var(--accent-dim); border-color: var(--accent); color: var(--text); }
+  .msg.assistant .msg-bubble { background: var(--surface); color: var(--text); }
+  .msg.error .msg-bubble { background: transparent; border-color: #e05555; color: #e05555; font-size: 0.85rem; }
+
+  .msg-meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+  .msg.user .msg-meta { text-align: right; }
+
+  /* Suggested openers */
+  .starters { padding: 0 1.5rem 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .starter-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    padding: 0.45rem 0.9rem; font-family: 'Georgia', serif; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s; border-radius: 0;
+  }
+  .starter-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* Input area */
+  .input-area {
+    padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+    display: flex; gap: 0.75rem; align-items: flex-end; flex-shrink: 0;
+  }
+  .input-area textarea {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Georgia', serif; font-size: 0.95rem;
+    padding: 0.75rem 1rem; resize: none; min-height: 48px; max-height: 160px;
+    line-height: 1.5; transition: border-color 0.2s;
+  }
+  .input-area textarea:focus { outline: none; border-color: var(--accent); }
+  .send-btn {
+    background: var(--accent); color: white; border: none;
+    padding: 0.75rem 1.4rem; font-family: 'Georgia', serif; font-size: 0.9rem;
+    cursor: pointer; height: 48px; flex-shrink: 0; transition: background 0.2s;
+  }
+  .send-btn:hover { background: var(--accent-dim); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .typing-indicator { display: none; align-items: center; gap: 0.4rem; padding: 0 1.5rem 0.5rem; }
+  .typing-indicator.visible { display: flex; }
+  .dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+</style>
+</head>
+<body>
+
+<!-- Setup overlay -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <p style="font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;">Portrait Navigator</p>
+    <h2>Paste your portrait to begin.</h2>
+    <p>Your portrait was delivered by email. Paste the full text below — the Navigator will answer every question through the lens of your specific findings.</p>
+    <textarea id="portraitInput" placeholder="Paste your Thumbprint portrait here..."></textarea>
+    <button class="btn-primary" onclick="loadPortrait()">Load Portrait</button>
+  </div>
+</div>
+
+<!-- Portrait side panel -->
+<div class="portrait-panel" id="portraitPanel">
+  <h3>Your Portrait</h3>
+  <pre id="portraitDisplay"></pre>
+</div>
+
+<!-- Nav -->
+<nav>
+  <span class="wordmark">Thumbprint &mdash; Navigator</span>
+  <div class="nav-actions">
+    <button class="nav-btn" id="portraitToggleBtn" onclick="togglePortrait()">Your Portrait</button>
+    <button class="nav-btn" onclick="clearConversation()">Clear</button>
+  </div>
+</nav>
+
+<!-- Main chat -->
+<div class="chat-main">
+  <div class="messages" id="messages">
+    <div class="msg assistant">
+      <div class="msg-bubble">Portrait loaded. Ask me anything — I'll answer through the lens of your specific findings. Try one of the openers below, or bring a real situation.</div>
+    </div>
+  </div>
+
+  <div class="starters" id="starters">
+    <button class="starter-btn" onclick="useStarter(this)">How would my patterns show up in a negotiation?</button>
+    <button class="starter-btn" onclick="useStarter(this)">What's my default move under pressure?</button>
+    <button class="starter-btn" onclick="useStarter(this)">What should I watch for in my next hire?</button>
+    <button class="starter-btn" onclick="useStarter(this)">Where am I most likely to get in my own way?</button>
+  </div>
+
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <span style="font-size:0.8rem;color:var(--muted);margin-left:0.4rem;">Navigating...</span>
+  </div>
+
+  <div class="input-area">
+    <textarea id="chatInput" placeholder="Ask anything — bring a real situation..." rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  let portrait = '';
+  let conversationHistory = [];
+  const RELAY_URL = '/chat';  // Uses server-side key via intake_server.py
+
+  // Check for portrait in URL param (?portrait=base64)
+  const params = new URLSearchParams(window.location.search);
+  const pParam = params.get('portrait');
+  if (pParam) {
+    try {
+      portrait = atob(pParam);
+      document.getElementById('portraitDisplay').textContent = portrait;
+      document.getElementById('setupOverlay').classList.add('hidden');
+    } catch(e) { console.warn('Could not decode portrait param'); }
+  }
+
+  function loadPortrait() {
+    const text = document.getElementById('portraitInput').value.trim();
+    if (text.length < 50) { alert('That looks too short to be a portrait. Please paste the full text.'); return; }
+    portrait = text;
+    document.getElementById('portraitDisplay').textContent = portrait;
+    document.getElementById('setupOverlay').classList.add('hidden');
+  }
+
+  function togglePortrait() {
+    const panel = document.getElementById('portraitPanel');
+    const btn   = document.getElementById('portraitToggleBtn');
+    panel.classList.toggle('open');
+    btn.classList.toggle('active');
+  }
+
+  function clearConversation() {
+    if (!confirm('Clear this conversation? The portrait stays loaded.')) return;
+    conversationHistory = [];
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = '<div class="msg assistant"><div class="msg-bubble">Conversation cleared. Your portrait is still loaded. What would you like to explore?</div></div>';
+    document.getElementById('starters').style.display = 'flex';
+  }
+
+  function useStarter(btn) {
+    document.getElementById('chatInput').value = btn.textContent;
+    document.getElementById('starters').style.display = 'none';
+    sendMessage();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  function addMessage(role, content) {
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.className = 'msg ' + role;
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    div.innerHTML = `<div class="msg-bubble">${content.replace(/\n/g,'<br>')}</div><div class="msg-meta">${time}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  function addError(msg) {
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.className = 'msg error';
+    div.innerHTML = `<div class="msg-bubble">&#9888; ${msg}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  async function sendMessage() {
+    if (!portrait) { alert('Please load your portrait first.'); return; }
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('starters').style.display = 'none';
+    document.getElementById('sendBtn').disabled = true;
+
+    addMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+
+    document.getElementById('typingIndicator').classList.add('visible');
+
+    try {
+      const res = await fetch(RELAY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portrait, messages: conversationHistory })
+      });
+
+      document.getElementById('typingIndicator').classList.remove('visible');
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        addError(err.error || `Server error ${res.status}`);
+      } else {
+        const data = await res.json();
+        const reply = data.reply || '(no response)';
+        conversationHistory.push({ role: 'assistant', content: reply });
+        addMessage('assistant', reply);
+      }
+    } catch(e) {
+      document.getElementById('typingIndicator').classList.remove('visible');
+      addError('Connection error. Is the Thumbprint server running at localhost:8765?');
+    }
+
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('chatInput').focus();
+  }
+</script>
+</body>
+</html>

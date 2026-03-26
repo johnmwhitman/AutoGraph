@@ -1,150 +1,118 @@
-# AutoGraph — Behavioral Portrait System
+# Thumbprint — Behavioral Portrait System
 ## What This Is
 
-AutoGraph generates a **behavioral portrait** from your AI interaction history.
-Not a summary. Not a recap. A structured analysis of *how you think* — your
-reasoning patterns, decision heuristics, blind spots, and signature moves —
-derived from the evidence of hundreds of real conversations.
+Thumbprint generates a **behavioral portrait** from a structured intake interview.
+Not a personality type. Not a quiz. A portrait of how you actually think —
+synthesized from demonstrated patterns, not self-report.
 
-> "Your AI knows how you think. AutoGraph makes that visible."
-
----
-
-## The Core Idea
-
-Every time you use an AI assistant, you leave behind evidence:
-- What you build when no one's watching
-- How you frame problems
-- When you override the AI's suggestion vs accept it
-- What you return to again and again
-- How your thinking evolves over time
-
-AutoGraph synthesizes that evidence into a portrait you can actually use —
-for self-understanding, for communicating how you work, for hiring contexts,
-for leadership development, or just for the strange pleasure of seeing
-yourself clearly.
+> "Every decision leaves a pattern. Every problem you return to reveals something.
+>  Now you can read it."
 
 ---
 
-## Three Portrait Tiers
+## Architecture
 
-### Standard — The Intake Portrait
-No AI history required. A structured interview (8 questions, ~20 min)
-surfaces your decision patterns, work philosophy, and characteristic moves.
-Output: a 1,200-word behavioral portrait.
-
-### Memory Foundation — The Evidence Portrait
-Built from your Super Memory / Continuity export. Claude reads your actual
-decisions, projects, and context — then synthesizes a portrait grounded in
-evidence, not self-report.
-Output: portrait + pattern analysis + 3 signature behaviors.
-
-### Live — The Evolving Portrait
-Annual engagement. Portrait updates quarterly as your AI history grows.
-Includes a diff: "Here's how your thinking has changed in 90 days."
-Output: living portrait + quarterly delta reports + pattern timeline.
-
----
-
-## The Intake Interview (Standard Tier)
-
-Eight questions. Answer honestly. Don't overthink them.
-
-1. Describe a decision you made recently that you're genuinely proud of.
-   What made it good?
-
-2. Describe a decision you regret or would make differently.
-   What does that tell you about how you think?
-
-3. When you're stuck on a hard problem, what do you actually do?
-   Walk me through it concretely.
-
-4. What do people misunderstand about how you work?
-
-5. What's something you've built or created that represents how you
-   think better than your resume does?
-
-6. When do you override expert advice? When do you defer?
-
-7. What patterns do you notice in the things you keep returning to —
-   problems, themes, questions?
-
-8. What would someone who works closely with you say is your
-   signature move — the thing that's distinctly yours?
+```
+intake_form.html          — Round 1 wizard (8 behavioral probe questions)
+intake_server.py          — Python stdlib server (:8765), no dependencies
+intake_processor.py       — Claude API synthesis engine
+intake_prompt.py          — System prompt + interview template (v2 behavioral probes)
+autograph_coordinator.py  — Lifecycle tracker (--list, --status, --next-action)
+round2_generator.py       — Generates 8 personalized Round 2 questions from portrait
+round2_form.html          — Round 2 wizard (gold accent, dynamic questions via URL param)
+portrait_chat.html        — Portrait Navigator chatbot (90-day access tier)
+delivery_prep.py          — PDF render for delivery (reportlab, txt fallback)
+landing_thumbprint.html   — Public landing page (Stripe payment link)
+listing_copy.md           — Product listing copy, upgrade paths, tags
+THUMBPRINT_LAUNCH_STEPS.md — John's launch checklist (Stripe + CF email + deploy)
+```
 
 ---
 
-## Synthesis Instructions (for Claude)
+## Three Tiers
 
-After collecting intake answers, generate a behavioral portrait using
-this structure:
+| Tier | Price | What You Get |
+|------|-------|-------------|
+| Standard | $299 | Round 1 portrait (~1,200 words, 5 business days) |
+| Deep | +$148 | Round 1 + 8 personalized Round 2 questions + deeper synthesis |
+| Full | +$148 | Everything + Portrait Navigator (90-day chat with your portrait) |
 
-**[Name]'s Behavioral Portrait**
-*Generated [date] via AutoGraph Intake Interview*
-
-**The Core Pattern**
-[2-3 sentences capturing the dominant cognitive signature — the through-line
-that runs across everything else. This is the most important section. Make it
-specific, not flattering.]
-
-**How They Think**
-[Decision-making style, information gathering patterns, how they handle
-uncertainty, relationship to expertise and authority.]
-
-**Signature Moves**
-[3 labeled behaviors that are distinctly theirs. Each gets a name and
-a 2-sentence description grounded in their answers.]
-
-**The Tension**
-[Every interesting thinker has a productive internal tension — two things
-that pull against each other and generate most of their output. Name it.]
-
-**The Blind Spot**
-[One honest observation about what this person systematically
-underweights or misses. Evidence-based. Not cruel, but real.]
-
-**Evidence of Growth**
-[What their regret answer and current work suggest about how they're
-developing. What's the direction of travel?]
-
-**For the Record**
-[One sentence that captures this person in a way they'd recognize
-as true even if they'd never say it themselves.]
+Upgrade after delivery. No commitment upfront beyond Round 1.
 
 ---
 
-## Methodology Notes
+## Running Locally
 
-AutoGraph is not a personality test. It doesn't classify you.
-It generates a portrait — a specific, evidence-grounded description
-of *this person* that couldn't apply to someone else.
+```bash
+# Start the intake server
+python intake_server.py
+# Serves on http://localhost:8765
 
-The difference between a personality test and a portrait:
-- A test tells you which box you're in
-- A portrait tells you what you actually do
+# Routes:
+#   GET  /           → intake_form.html (Round 1 wizard)
+#   GET  /round2     → round2_form.html (Round 2 wizard)
+#   GET  /chat       → portrait_chat.html (Navigator)
+#   POST /submit-intake → saves JSON to intakes/, triggers synthesis
+#   POST /chat          → relays to Claude API (server-side key)
 
-Portraits are generated by Claude using structured synthesis prompts.
-The methodology is proprietary. The infrastructure (Super Memory /
-Continuity) is open source.
+# Process a completed intake manually
+python intake_processor.py intakes/name_timestamp.json
+
+# Demo mode (uses SAMPLE_INTAKE)
+python intake_processor.py --demo
+
+# Client lifecycle management
+python autograph_coordinator.py --list
+python autograph_coordinator.py --new "Alex Rivera" alex@example.com standard
+python autograph_coordinator.py --next-action alex_rivera
+python autograph_coordinator.py --generate-round2 alex_rivera
+
+# Prepare delivery PDF
+python delivery_prep.py --latest
+```
 
 ---
 
-## Pricing (Proposed)
+## First Order Flow (manual until automated)
 
-| Tier | Price | Delivery |
-|------|-------|----------|
-| Standard Intake | $97 | 48 hours |
-| Memory Foundation | $297 | 5 business days |
-| Live Annual | $997/yr | Quarterly updates |
+1. Stripe notification arrives → check email
+2. Email buyer: "Here's your intake form: http://[deployed-url]/intake"
+3. Buyer completes form → server saves intake JSON, auto-triggers synthesis
+4. Portrait written to `portraits/name_date.md`
+5. Run `python autograph_coordinator.py --new "Name" email tier` to create client record
+6. Run `python delivery_prep.py --latest` to render PDF
+7. Email portrait PDF to buyer
 
-Early access pricing. Methodology-locked pricing — not the tools — is the moat.
+---
+
+## Design Philosophy
+
+AutoGraph v1 used self-report questions ("What's your decision style?").
+Thumbprint v2 uses behavioral probes — every question asks for a specific incident.
+
+Self-report gives you labels. Behavioral probes give you demonstrations.
+Synthesis runs on demonstrations.
+
+**What they chose to show is itself data about who they are.**
+
+The blind spot section is written to be accurate, not comfortable.
+That's the product. Softening it breaks the product.
+
+---
+
+## Methodology
+
+Portraits are generated by Claude using structured synthesis prompts (intake_prompt.py).
+The methodology — synthesis prompts, portrait structure, interview design — is proprietary.
+The delivery infrastructure is built on Continuity (open source).
 
 ---
 
 ## Status
 
-AutoGraph is in private development.
-Built on the Continuity memory infrastructure.
+Thumbprint is in private beta.
+Domain: thumbprinted.com
+Payment: Stripe Payment Links
+Email: hello@thumbprinted.com
 
-*AutoGraph is a service. The infrastructure (Continuity) is open source.*
-*The methodology — synthesis prompts, portrait structure, interview design — is not.*
+All 8 core files operational. Smoke test: 31/31 PASS (2026-03-25).

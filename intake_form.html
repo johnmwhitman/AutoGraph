@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbprint — Intake</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a35;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent: #7c6af7;
+    --accent-dim: #3d3580;
+    --gold: #c9a84c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  nav {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wordmark {
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-family: 'Georgia', serif;
+  }
+
+  .nav-note { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+  }
+
+  /* Progress */
+  .progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .preamble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: normal;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .question-hint {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    padding: 1rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea.error { border-color: #e05555; }
+
+  .error-msg {
+    font-size: 0.8rem;
+    color: #e05555;
+    margin-top: 0.4rem;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  input[type="text"], input[type="email"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus, input[type="email"]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  .field-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.85rem 2rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover { background: var(--accent-dim); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-back {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-back:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Thank you screen */
+  .thankyou {
+    text-align: center;
+    padding: 4rem 0;
+  }
+
+  .thankyou .check {
+    font-size: 2.5rem;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .thankyou h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+  .thankyou p { color: var(--muted); max-width: 420px; margin: 0 auto; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="wordmark">Thumbprint</span>
+  <span class="nav-note">Round 1 Intake</span>
+</nav>
+
+<div class="container">
+
+  <!-- Progress bar -->
+  <div class="progress-bar" id="progressBar" style="display:none;">
+    <span class="progress-label" id="progressLabel">Question 1 of 8</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:12.5%"></div>
+    </div>
+  </div>
+
+  <!-- Screen 0: Name + email -->
+  <div class="screen active" id="screen-0">
+    <p class="screen-label">Before we begin</p>
+    <h2>A few details first.</h2>
+    <br>
+    <label class="field-label">Your Name</label>
+    <input type="text" id="field-name" placeholder="Full name" autocomplete="name">
+    <label class="field-label">Email Address</label>
+    <input type="email" id="field-email" placeholder="your@email.com" autocomplete="email">
+    <label class="field-label">How did you hear about Thumbprint? <span style="color:var(--muted);font-size:0.8rem">(optional)</span></label>
+    <input type="text" id="field-referral" placeholder="Word of mouth, social, etc.">
+    <div class="btn-row">
+      <button class="btn-primary" onclick="startIntake()">Begin Intake</button>
+    </div>
+  </div>
+
+  <!-- Screen 1: Preamble + Q1 -->
+  <div class="screen" id="screen-1">
+    <div class="preamble">
+      There are no right answers. Answer from specific incidents — not how you'd like to be seen, but what you actually did. 2–5 sentences per question is ideal.
+    </div>
+    <p class="screen-label">Question 1 of 8</p>
+    <h2>Describe a decision you made that you're genuinely proud of.</h2>
+    <p class="question-hint">Walk me through what you actually did — not why it was right in hindsight, but what you did in the moment when it was still uncertain.</p>
+    <textarea id="q1" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q1">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(1)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Q2 -->
+  <div class="screen" id="screen-2">
+    <p class="screen-label">Question 2 of 8</p>
+    <h2>Describe a decision you'd make differently.</h2>
+    <p class="question-hint">Don't explain why it was the wrong call — tell me what you did instead of what you knew you should do.</p>
+    <textarea id="q2" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q2">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(2)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Q3 -->
+  <div class="screen" id="screen-3">
+    <p class="screen-label">Question 3 of 8</p>
+    <h2>Tell me about something you built or created that represents how you think more honestly than your resume does.</h2>
+    <p class="question-hint">What is it, and what does it reveal about you?</p>
+    <textarea id="q3" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q3">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(3)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Q4 -->
+  <div class="screen" id="screen-4">
+    <p class="screen-label">Question 4 of 8</p>
+    <h2>Describe a situation where you were in a room with people who disagreed with your read on something.</h2>
+    <p class="question-hint">What did you do? What happened?</p>
+    <textarea id="q4" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q4">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(4)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 5: Q5 -->
+  <div class="screen" id="screen-5">
+    <p class="screen-label">Question 5 of 8</p>
+    <h2>What problem do you keep coming back to — not because it's assigned to you, but because you can't leave it alone?</h2>
+    <textarea id="q5" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q5">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(5)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 6: Q6 -->
+  <div class="screen" id="screen-6">
+    <p class="screen-label">Question 6 of 8</p>
+    <h2>Tell me about a time you walked into a situation that wasn't yours to fix and fixed it anyway.</h2>
+    <p class="question-hint">What triggered that?</p>
+    <textarea id="q6" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q6">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(6)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 7: Q7 -->
+  <div class="screen" id="screen-7">
+    <p class="screen-label">Question 7 of 8</p>
+    <h2>Describe a time you deferred to someone else's judgment and it was the right call.</h2>
+    <p class="question-hint">What made you defer?</p>
+    <textarea id="q7" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q7">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="nextScreen(7)">Next</button>
+    </div>
+  </div>
+
+  <!-- Screen 8: Q8 -->
+  <div class="screen" id="screen-8">
+    <p class="screen-label">Question 8 of 8</p>
+    <h2>What do the people who work most closely with you know about how you operate that people who've just met you don't?</h2>
+    <textarea id="q8" placeholder="Answer from a specific incident..."></textarea>
+    <div class="error-msg" id="err-q8">Please write at least a sentence before continuing.</div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goBack()">Back</button>
+      <button class="btn-primary" onclick="submitIntake()">Submit</button>
+    </div>
+  </div>
+
+  <!-- Thank you screen -->
+  <div class="screen" id="screen-done">
+    <div class="thankyou">
+      <div class="check">&#10003;</div>
+      <h2>Thank you.</h2>
+      <p>Your intake has been received. Your portrait will arrive within 5 business days.</p>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- Hidden fields -->
+<input type="hidden" id="h-round" value="1">
+<input type="hidden" id="h-version" value="v2">
+
+<footer>
+  Thumbprint &mdash; Behavioral Portrait System &copy; 2026
+</footer>
+
+<script>
+  let currentScreen = 0;
+  const TOTAL_QUESTIONS = 8;
+
+  function showScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + n).classList.add('active');
+    currentScreen = n;
+    const pb = document.getElementById('progressBar');
+    if (n === 0 || n === 'done') {
+      pb.style.display = 'none';
+    } else {
+      pb.style.display = 'flex';
+      const pct = (n / TOTAL_QUESTIONS) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressLabel').textContent = 'Question ' + n + ' of ' + TOTAL_QUESTIONS;
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function startIntake() {
+    const name = document.getElementById('field-name').value.trim();
+    const email = document.getElementById('field-email').value.trim();
+    if (!name || !email) { alert('Please enter your name and email to continue.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address.'); return; }
+    showScreen(1);
+  }
+
+  function nextScreen(qNum) {
+    const ta = document.getElementById('q' + qNum);
+    const err = document.getElementById('err-q' + qNum);
+    if (!ta.value.trim() || ta.value.trim().split(' ').length < 4) {
+      ta.classList.add('error');
+      err.classList.add('visible');
+      return;
+    }
+    ta.classList.remove('error');
+    err.classList.remove('visible');
+    showScreen(qNum + 1);
+  }
+
+  function goBack() {
+    if (currentScreen === 1) { showScreen(0); }
+    else if (currentScreen > 1) { showScreen(currentScreen - 1); }
+  }
+
+  function submitIntake() {
+    const ta = document.getElementById('q8');
+    const err = document.getElementById('err-q8');
+    if (!ta.value.trim() || ta.value.trim().split(' ').length < 4) {
+      ta.classList.add('error');
+      err.classList.add('visible');
+      return;
+    }
+    ta.classList.remove('error');
+    err.classList.remove('visible');
+
+    const payload = {
+      name:    document.getElementById('field-name').value.trim(),
+      email:   document.getElementById('field-email').value.trim(),
+      referral: document.getElementById('field-referral').value.trim(),
+      round:   document.getElementById('h-round').value,
+      version: document.getElementById('h-version').value,
+      timestamp: new Date().toISOString(),
+      answers: {
+        q1_proud_decision:    document.getElementById('q1').value.trim(),
+        q2_regret_action:     document.getElementById('q2').value.trim(),
+        q3_built_created:     document.getElementById('q3').value.trim(),
+        q4_group_disagreement:document.getElementById('q4').value.trim(),
+        q5_obsessive_problem: document.getElementById('q5').value.trim(),
+        q6_uninvited_fix:     document.getElementById('q6').value.trim(),
+        q7_deferred_judgment: document.getElementById('q7').value.trim(),
+        q8_insider_knowledge: document.getElementById('q8').value.trim()
+      }
+    };
+
+    const btn = document.querySelector('#screen-8 .btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    fetch('/submit-intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(r => {
+      if (!r.ok) throw new Error('Server error: ' + r.status);
+      return r.json();
+    })
+    .then(() => { showScreen('done'); })
+    .catch(err => {
+      // Fallback: show thank you anyway, log to console
+      console.error('Submit error:', err);
+      showScreen('done');
+    });
+  }
+</script>
+</body>
+</html>

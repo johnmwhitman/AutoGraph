@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoGraph — Behavioral Portrait System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a35;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent: #7c6af7;
+    --accent-dim: #3d3580;
+    --gold: #c9a84c;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; line-height: 1.7; min-height: 100vh; }
+
+  nav { padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .wordmark { font-size: 1.1rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); font-family: 'Georgia', serif; }
+  .nav-note { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  .hero { max-width: 760px; margin: 0 auto; padding: 7rem 2rem 5rem; text-align: center; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.15; margin-bottom: 1.5rem; font-weight: normal; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .sub { font-size: 1.15rem; color: var(--muted); max-width: 540px; margin: 0 auto 3rem; line-height: 1.8; }
+
+  .cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: white; border: none; padding: 0.9rem 2rem; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.03em; text-decoration: none; display: inline-block; font-family: 'Georgia', serif; }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.9rem 2rem; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.03em; text-decoration: none; display: inline-block; font-family: 'Georgia', serif; }
+  .btn-primary:hover { background: var(--accent-dim); }
+  .btn-secondary:hover { border-color: var(--muted); }
+
+  .divider { width: 60px; height: 1px; background: var(--border); margin: 5rem auto; }
+
+  section { max-width: 760px; margin: 0 auto; padding: 0 2rem; }
+  .section-label { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+  h2 { font-size: 1.8rem; font-weight: normal; margin-bottom: 1rem; }
+  p { margin-bottom: 1rem; color: var(--muted); }
+</style>
+
+<style>
+  .portrait-sample { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 2rem; margin: 2.5rem 0; font-size: 0.95rem; }
+  .portrait-sample .portrait-header { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+  .portrait-section-title { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 1.2rem 0 0.4rem; }
+  .portrait-text { color: var(--text); font-style: italic; line-height: 1.8; }
+
+  /* How it works steps */
+  .steps { margin: 2rem 0; }
+  .step { display: flex; gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .step:last-child { border-bottom: none; }
+  .step-num { font-size: 1.4rem; color: var(--accent); min-width: 2rem; font-style: italic; }
+  .step-num.gold { color: var(--gold); }
+  .step-body h4 { font-size: 1rem; font-weight: normal; margin-bottom: 0.3rem; color: var(--text); }
+  .step-body p { margin: 0; font-size: 0.9rem; }
+
+  /* Tiers */
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); margin: 2rem 0; }
+  .tier { background: var(--surface); padding: 2rem; }
+  .tier.featured { border-top: 2px solid var(--gold); }
+  .tier-name { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+  .tier-price { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text); }
+  .tier-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .tier-tag { display: inline-block; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--gold); padding: 0.2rem 0.5rem; margin-bottom: 0.75rem; }
+
+  /* Navigator card */
+  .navigator-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 3rem 2rem;
+    margin: 3rem 0;
+  }
+  .navigator-card h3 { font-size: 1.4rem; font-weight: normal; margin-bottom: 0.75rem; }
+  .navigator-card p { font-size: 0.95rem; }
+  .navigator-cta { display: inline-block; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-top: 1.5rem; text-decoration: none; border-bottom: 1px solid var(--accent-dim); padding-bottom: 2px; }
+
+  .early-access { background: var(--surface); border: 1px solid var(--border); padding: 3rem 2rem; text-align: center; margin: 3rem 0; }
+  input[type="email"] { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.8rem 1rem; font-size: 0.95rem; width: 100%; max-width: 320px; font-family: inherit; display: block; margin: 0 auto 1rem; }
+  input[type="email"]::placeholder { color: var(--muted); }
+
+  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 6rem; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="wordmark">AutoGraph</span>
+  <span class="nav-note">Private Beta</span>
+</nav>
+
+<div class="hero">
+  <p class="eyebrow">Behavioral Portrait System</p>
+  <h1>Your AI knows<br>how you <em>think.</em><br>AutoGraph makes<br>that visible.</h1>
+  <p class="sub">
+    Every decision leaves evidence — how you frame problems, when you push back,
+    what you return to. AutoGraph synthesizes that evidence into a portrait
+    of your cognitive signature.
+  </p>
+  <div class="cta-group">
+    <a href="#pricing" class="btn-primary">See Pricing</a>
+    <a href="#how-it-works" class="btn-secondary">See a Sample Portrait</a>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<section id="how-it-works">
+  <p class="section-label">What You Get</p>
+  <h2>Not a personality test.<br>A portrait.</h2>
+  <p>Personality tests put you in a box. A portrait describes you specifically — the through-line in your decisions, your signature moves, the tension that generates most of your best work, and the blind spot you probably already know about but haven't named.</p>
+  <p>AutoGraph reads your answers to 8 behavioral probe questions — your real decisions, from specific incidents — and synthesizes what it finds. The output is grounded in evidence, not self-report.</p>
+
+  <div class="portrait-sample">
+    <div class="portrait-header">Sample Portrait (excerpt)</div>
+    <div class="portrait-section-title">The Core Pattern</div>
+    <div class="portrait-text">"He builds before he has permission, then makes the thing too useful to stop. This isn't recklessness — it's a deliberate strategy for moving in systems that require demonstrated value before granting authority."</div>
+    <div class="portrait-section-title">The Tension</div>
+    <div class="portrait-text">"He believes deeply in systems and hates being controlled by them. Most of his best work lives in that friction."</div>
+    <div class="portrait-section-title">The Blind Spot</div>
+    <div class="portrait-text">"He already knows what he's going to do. He's usually just building the evidence that makes it undeniable to everyone else — which means the real decision happened earlier than anyone thinks, including him."</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="how-it-works-steps">
+  <p class="section-label">The Process</p>
+  <h2>How AutoGraph works.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Complete your Round 1 intake</h4>
+        <p>8 behavioral probe questions. Not what you believe about yourself — what you actually did, in specific situations. Takes 20–30 minutes. No right answers.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Receive your portrait</h4>
+        <p>Within 5 business days. Your core pattern, signature behaviors, tension, and blind spot — grounded in what you wrote, not in general models.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num gold">3</div>
+      <div class="step-body">
+        <h4>Round 2 intake <span style="font-size:0.8rem;color:var(--gold)">[Deep &amp; Full]</span></h4>
+        <p>You receive 8 personalized follow-up questions written specifically from your Round 1 portrait — not generic prompts, but probes designed to confirm or complicate exactly what we found. Your Round 2 portrait goes sharper.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num gold">4</div>
+      <div class="step-body">
+        <h4>Portrait Navigator access <span style="font-size:0.8rem;color:var(--gold)">[Full]</span></h4>
+        <p>Chat with your portrait. Ask how your patterns apply to a negotiation, a hire, a conflict, a decision. The Navigator answers through the specific lens of your findings — not general advice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2>Four tiers.<br>One question: how deep do you want to go?</h2>
+  <div class="tiers">
+    <div class="tier">
+      <div class="tier-name">Standard</div>
+      <div class="tier-price">$299</div>
+      <div class="tier-desc">Round 1 portrait. 8 behavioral probe questions. Portrait delivered within 5 business days. The foundation.</div>
+    </div>
+    <div class="tier featured">
+      <div class="tier-tag">Most Popular</div>
+      <div class="tier-name">Deep</div>
+      <div class="tier-price">$449</div>
+      <div class="tier-desc">Rounds 1 + 2. Portrait, then a second pass with personalized follow-up questions written from what Round 1 found. Sharper synthesis.</div>
+    </div>
+    <div class="tier">
+      <div class="tier-name">Full Portrait</div>
+      <div class="tier-price">$649</div>
+      <div class="tier-desc">Rounds 1 + 2 + Portrait Navigator chatbot included. Chat with your portrait for 90 days. Ask it anything. Apply it to real situations as they arise.</div>
+    </div>
+    <div class="tier">
+      <div class="tier-name">Live</div>
+      <div class="tier-price">$997<span style="font-size:1rem">/yr</span></div>
+      <div class="tier-desc">Quarterly portrait updates. Tracks how your thinking evolves over time. Includes delta reports — what shifted and what held.</div>
+    </div>
+  </div>
+  <p style="font-size:0.85rem; text-align:center;">Early access pricing. First 20 portraits at these rates.</p>
+</section>
+
+<div class="divider"></div>
+
+<section id="navigator">
+  <div class="navigator-card">
+    <p class="section-label">Portrait Navigator</p>
+    <h3>Your portrait, as a conversation.</h3>
+    <p>After delivery, ask your portrait anything. How would your patterns show up in a negotiation? What's your default move under pressure? What should you watch for in your next hire?</p>
+    <p>The Navigator answers in the language of your portrait — your specific evidence, your specific patterns. Not general advice. Not what other people like you tend to do. What you tend to do, based on what you actually showed us.</p>
+    <p>It doesn't soften the blind spot. It doesn't add findings that weren't in Round 1. It navigates what was found.</p>
+    <a href="#pricing" class="navigator-cta">Included with Full Portrait &rarr;</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="early-access">
+  <div class="early-access">
+    <p class="section-label">Early Access</p>
+    <h2 style="margin-bottom: 1rem;">Get on the list.</h2>
+    <p style="max-width: 400px; margin: 0 auto 2rem; font-size: 0.95rem;">
+      AutoGraph is in private beta. Early access members get first portraits,
+      early access pricing, and input on what gets built next.
+    </p>
+    <input type="email" placeholder="your@email.com">
+    <br>
+    <a href="mailto:hello@yourbrief.io?subject=AutoGraph Early Access" class="btn-primary">
+      Request Access
+    </a>
+    <p style="margin-top:1.5rem;font-size:0.8rem;">Or go straight to intake: <a href="/intake" style="color:var(--accent);">start your portrait now &rarr;</a></p>
+  </div>
+</section>
+
+<footer>
+  AutoGraph is a behavioral portrait service built on the
+  <a href="https://github.com/johnmwhitman/claude-continuity" style="color: var(--accent);">Continuity</a>
+  open source infrastructure. The methodology is proprietary.
+  <br><br>
+  &copy; 2026 &nbsp;&middot;&nbsp; <a href="mailto:hello@yourbrief.io" style="color:var(--muted);">hello@yourbrief.io</a>
+</footer>
+
+</body>
+</html>

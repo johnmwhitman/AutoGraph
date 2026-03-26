@@ -1,0 +1,13 @@
+# AutoGraph — gitignore
+# Client portrait data — never push
+portraits/
+intakes/
+
+# Stripe live keys / payment IDs — never push
+stripe_live_ids.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env

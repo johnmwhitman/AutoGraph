@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbprint — Round 2</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a35;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent: #7c6af7;
+    --accent-dim: #3d3580;
+    --gold: #c9a84c;
+    --gold-dim: #7a5e1e;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; line-height: 1.7; min-height: 100vh; }
+
+  nav {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wordmark { font-size: 1.1rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); }
+  .nav-round { font-size: 0.8rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+
+
+  .container { max-width: 680px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+
+  /* Progress — gold tint for Round 2 */
+  .progress-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 3rem; }
+  .progress-track { flex: 1; height: 2px; background: var(--border); }
+  .progress-fill { height: 100%; background: var(--gold); transition: width 0.4s ease; }
+  .progress-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; white-space: nowrap; }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .screen-label { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+
+  .preamble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  h2 { font-size: 1.4rem; font-weight: normal; margin-bottom: 0.75rem; line-height: 1.4; }
+
+  textarea {
+    width: 100%; min-height: 180px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Georgia', serif; font-size: 0.95rem;
+    line-height: 1.7; padding: 1rem; resize: vertical; transition: border-color 0.2s;
+  }
+  textarea:focus { outline: none; border-color: var(--gold); }
+  textarea.error { border-color: #e05555; }
+
+  .error-msg { font-size: 0.8rem; color: #e05555; margin-top: 0.4rem; display: none; }
+  .error-msg.visible { display: block; }
+
+  input[type="text"], input[type="email"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Georgia', serif; font-size: 0.95rem;
+    padding: 0.8rem 1rem; margin-bottom: 1rem; transition: border-color 0.2s;
+  }
+  input:focus { outline: none; border-color: var(--gold); }
+  input::placeholder { color: var(--muted); }
+
+  .field-label { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; display: block; }
+
+  .btn-row { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
+
+  .btn-primary {
+    background: var(--gold);
+    color: #0d0d0f;
+    border: none; padding: 0.85rem 2rem;
+    font-family: 'Georgia', serif; font-size: 0.95rem; cursor: pointer;
+    letter-spacing: 0.03em; transition: background 0.2s; font-weight: bold;
+  }
+  .btn-primary:hover { background: var(--gold-dim); color: var(--text); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-back {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    padding: 0.85rem 1.5rem; font-family: 'Georgia', serif; font-size: 0.95rem;
+    cursor: pointer; transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-back:hover { color: var(--text); border-color: var(--muted); }
+
+  .thankyou { text-align: center; padding: 4rem 0; }
+  .thankyou .check { font-size: 2.5rem; color: var(--gold); margin-bottom: 1.5rem; }
+  .thankyou h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+  .thankyou p { color: var(--muted); max-width: 420px; margin: 0 auto; }
+
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 4rem; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="wordmark">Thumbprint</span>
+  <span class="nav-round">Round 2 — Deeper</span>
+</nav>
+
+<div class="container">
+  <div class="progress-bar" id="progressBar" style="display:none;">
+    <span class="progress-label" id="progressLabel">Question 1 of 8</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:12.5%"></div></div>
+  </div>
+
+  <!-- Screen 0: Name + email -->
+  <div class="screen active" id="screen-0">
+    <p class="screen-label">Round 2 Intake</p>
+    <h2>Welcome back, <span id="greet-name">—</span>.</h2>
+    <br>
+    <label class="field-label">Your Name</label>
+    <input type="text" id="field-name" placeholder="Full name">
+    <label class="field-label">Email Address</label>
+    <input type="email" id="field-email" placeholder="your@email.com">
+    <div class="btn-row">
+      <button class="btn-primary" onclick="startRound2()">Begin Round 2</button>
+    </div>
+  </div>
+
+  <!-- Screens 1-8 are generated dynamically from URL params or defaults -->
+  <div id="question-screens"></div>
+
+  <!-- Thank you screen -->
+  <div class="screen" id="screen-done">
+    <div class="thankyou">
+      <div class="check">&#10003;</div>
+      <h2>Round 2 complete.</h2>
+      <p>Your deeper portrait will arrive within 5 business days. Thank you for going further.</p>
+    </div>
+  </div>
+
+</div>
+
+<input type="hidden" id="h-round" value="2">
+<input type="hidden" id="h-version" value="v2">
+
+<footer>Thumbprint &mdash; Behavioral Portrait System &copy; 2026</footer>
+
+<script>
+  // Default Round 2 questions (used if no ?questions= param is provided)
+  const DEFAULT_QUESTIONS = [
+    "Think back to a time when your usual approach completely failed you — not a near miss, but a full breakdown. What did you do next? What did you do in the first hour after it became clear?",
+    "Describe a moment when you recognized a pattern in yourself mid-action — while it was happening, not after. What did you do with that recognition?",
+    "Tell me about a time you were in a conflict and you were the one who was wrong. Not a misunderstanding — actually wrong. How did you handle the moment you realized it?",
+    "Describe a situation where you held your position under pressure and it turned out you should have moved. What kept you anchored to your read?",
+    "Tell me about a time you changed someone's mind — not through argument, but through something else. What did you actually do?",
+    "Describe the last time you felt genuinely out of your depth. What was the specific thing you didn't know how to do? What did you do about it?",
+    "Tell me about a professional relationship that didn't work — not a conflict, a relationship that just quietly failed. What happened? What was your part in it?",
+    "Describe a decision you made that looked wrong from the outside but you knew was right. How did you hold that? Did it turn out to be right?"
+  ];
+
+  let currentScreen = 0;
+  let questions = DEFAULT_QUESTIONS;
+
+  // Parse URL params
+  const params = new URLSearchParams(window.location.search);
+  const nameParam = params.get('name') || '';
+  if (nameParam) {
+    document.getElementById('field-name').value = nameParam;
+    document.getElementById('greet-name').textContent = nameParam.split(' ')[0];
+  }
+
+  // Load questions from ?questions=base64 if present
+  const qParam = params.get('questions');
+  if (qParam) {
+    try { questions = JSON.parse(atob(qParam)); } catch(e) { console.warn('Could not parse questions param'); }
+  }
+
+  // Build question screens dynamically
+  function buildScreens() {
+    const container = document.getElementById('question-screens');
+    questions.slice(0, 8).forEach((q, i) => {
+      const n = i + 1;
+      container.innerHTML += `
+        <div class="screen" id="screen-${n}">
+          <p class="screen-label">Question ${n} of 8</p>
+          <h2>${q}</h2>
+          <textarea id="q${n}" placeholder="Answer from a specific incident..."></textarea>
+          <div class="error-msg" id="err-q${n}">Please write at least a sentence before continuing.</div>
+          <div class="btn-row">
+            <button class="btn-back" onclick="goBack()">Back</button>
+            ${n < 8
+              ? `<button class="btn-primary" onclick="nextScreen(${n})">Next</button>`
+              : `<button class="btn-primary" onclick="submitRound2()">Submit</button>`
+            }
+          </div>
+        </div>`;
+    });
+  }
+  buildScreens();
+
+  function showScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('screen-' + n);
+    if (el) el.classList.add('active');
+    currentScreen = n;
+    const pb = document.getElementById('progressBar');
+    if (n === 0 || n === 'done') { pb.style.display = 'none'; }
+    else {
+      pb.style.display = 'flex';
+      document.getElementById('progressFill').style.width = (n / 8 * 100) + '%';
+      document.getElementById('progressLabel').textContent = 'Question ' + n + ' of 8';
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function startRound2() {
+    const name  = document.getElementById('field-name').value.trim();
+    const email = document.getElementById('field-email').value.trim();
+    if (!name || !email) { alert('Please enter your name and email.'); return; }
+    // Show preamble on first question only
+    document.querySelectorAll('.screen')[1] && (() => {
+      const s1 = document.getElementById('screen-1');
+      if (s1 && !s1.querySelector('.preamble')) {
+        const pre = document.createElement('div');
+        pre.className = 'preamble';
+        pre.textContent = 'Your portrait identified specific patterns. These questions go deeper into what we found. Answer from incidents — not impressions.';
+        s1.insertBefore(pre, s1.firstChild);
+      }
+    })();
+    showScreen(1);
+  }
+
+  function nextScreen(qNum) {
+    const ta = document.getElementById('q' + qNum);
+    const err = document.getElementById('err-q' + qNum);
+    if (!ta || !ta.value.trim() || ta.value.trim().split(' ').length < 4) {
+      if (ta) ta.classList.add('error');
+      if (err) err.classList.add('visible');
+      return;
+    }
+    ta.classList.remove('error'); err.classList.remove('visible');
+    showScreen(qNum + 1);
+  }
+
+  function goBack() {
+    if (currentScreen === 1) showScreen(0);
+    else if (currentScreen > 1) showScreen(currentScreen - 1);
+  }
+
+  function submitRound2() {
+    const ta = document.getElementById('q8');
+    const err = document.getElementById('err-q8');
+    if (!ta || !ta.value.trim() || ta.value.trim().split(' ').length < 4) {
+      if (ta) ta.classList.add('error');
+      if (err) err.classList.add('visible');
+      return;
+    }
+
+    const answers = {};
+    for (let i = 1; i <= 8; i++) {
+      const el = document.getElementById('q' + i);
+      answers['q' + i] = el ? el.value.trim() : '';
+    }
+
+    const payload = {
+      name: document.getElementById('field-name').value.trim(),
+      email: document.getElementById('field-email').value.trim(),
+      round: '2',
+      version: 'v2',
+      timestamp: new Date().toISOString(),
+      answers
+    };
+
+    const btn = document.querySelector('#screen-8 .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+    fetch('/submit-intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(() => showScreen('done'))
+    .catch(() => showScreen('done'));
+  }
+</script>
+</body>
+</html>

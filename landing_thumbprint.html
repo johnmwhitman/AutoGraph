@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbprint — Your behavioral portrait</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0d0f; --surface: #16161a; --border: #2a2a35;
+    --text: #e8e8f0; --muted: #7a7a9a; --accent: #7c6af7;
+    --accent-dim: #3d3580; --gold: #c9a84c;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; line-height: 1.7; min-height: 100vh; }
+  nav { padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .wordmark { font-size: 1.1rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); font-family: 'Georgia', serif; }
+  .nav-note { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; }
+  .hero { max-width: 760px; margin: 0 auto; padding: 7rem 2rem 5rem; text-align: center; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.15; margin-bottom: 1.5rem; font-weight: normal; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .sub { font-size: 1.15rem; color: var(--muted); max-width: 540px; margin: 0 auto 3rem; line-height: 1.8; }
+  .cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: white; border: none; padding: 0.9rem 2rem; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.9rem 2rem; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
+  .divider { width: 60px; height: 1px; background: var(--border); margin: 5rem auto; }
+  section { max-width: 760px; margin: 0 auto; padding: 0 2rem; }
+  .section-label { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+  h2 { font-size: 1.8rem; font-weight: normal; margin-bottom: 1rem; }
+  p { margin-bottom: 1rem; color: var(--muted); }
+  .portrait-sample { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 2rem; margin: 2.5rem 0; font-size: 0.95rem; }
+  .portrait-sample .portrait-header { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+  .portrait-section-title { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 1.2rem 0 0.4rem; }
+  .portrait-text { color: var(--text); font-style: italic; line-height: 1.8; }
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); margin: 2rem 0; }
+  .tier { background: var(--surface); padding: 2rem; }
+  .tier-name { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+  .tier-price { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text); }
+  .tier-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .early-access { background: var(--surface); border: 1px solid var(--border); padding: 3rem 2rem; text-align: center; margin: 3rem 0; }
+  input[type="email"] { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.8rem 1rem; font-size: 0.95rem; width: 100%; max-width: 320px; font-family: inherit; display: block; margin: 0 auto 1rem; }
+  input[type="email"]::placeholder { color: var(--muted); }
+  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 6rem; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="wordmark">Thumbprint</span>
+  <span class="nav-note">Private Beta</span>
+</nav>
+
+<div class="hero">
+  <p class="eyebrow">Behavioral Portrait System</p>
+  <h1>No one else has<br>your <em>thumbprint.</em><br>Now you can<br>read it.</h1>
+  <p class="sub">
+    Every decision leaves a pattern. Every problem you return to reveals something.
+    Thumbprint presses your behavioral record against eight precise questions
+    and synthesizes what it finds — not a type, not a score. A portrait.
+  </p>
+  <div class="cta-group">
+    <a href="#get-thumbprinted" class="btn-primary">Get Thumbprinted — $299</a>
+    <a href="#how-it-works" class="btn-secondary">See a Sample Portrait</a>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<section id="how-it-works">
+  <p class="section-label">What You Get</p>
+  <h2>Not a personality test.<br>A portrait.</h2>
+  <p>
+    Personality tests put you in a box. A portrait describes you specifically —
+    the through-line in your decisions, your signature moves, the tension
+    that generates most of your best work, and the blind spot you probably
+    already know about but haven't named.
+  </p>
+  <p>
+    Thumbprint asks you to show your thinking through specific incidents — not how
+    you describe yourself, but what you actually did. The synthesis reads the
+    demonstrations, not the labels.
+    The output is grounded in evidence, not self-report.
+  </p>
+
+  <div class="portrait-sample">
+    <div class="portrait-header">Sample Portrait (excerpt)</div>
+    <div class="portrait-section-title">The Core Pattern</div>
+    <div class="portrait-text">
+      "He builds before he has permission, then makes the thing too useful to stop.
+      This isn't recklessness — it's a deliberate strategy for moving in systems
+      that require demonstrated value before granting authority."
+    </div>
+    <div class="portrait-section-title">The Blind Spot</div>
+    <div class="portrait-text">
+      "When the stakes are interpersonal, he reframes the problem as a data problem —
+      gathering more information to postpone a conclusion that was already available.
+      Knowing the mechanism and interrupting it are different skills."
+    </div>
+    <div class="portrait-section-title">For the Record</div>
+    <div class="portrait-text">
+      "He already knows what he's going to do. He's usually just building
+      the evidence that makes it undeniable to everyone else."
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <p class="section-label">Pricing</p>
+  <h2>Start with one portrait.<br>Go deeper when you're ready.</h2>
+  <div class="tiers">
+    <div class="tier">
+      <div class="tier-name">Standard</div>
+      <div class="tier-price">$299</div>
+      <div class="tier-desc">
+        8 behavioral probe questions. Portrait delivered in 5 business days.
+        The complete picture — core pattern, signature moves, tension, blind spot.
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-name">Deep</div>
+      <div class="tier-price">$299 <span style="font-size:1rem">+ $148</span></div>
+      <div class="tier-desc">
+        Round 1 portrait, then 8 personalized follow-up questions written
+        specifically from what your portrait found. Sharper synthesis.
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-name">Full</div>
+      <div class="tier-price">$299 <span style="font-size:1rem">+ $296</span></div>
+      <div class="tier-desc">
+        Three rounds of progressively deeper intake. Plus the Portrait Navigator —
+        chat with your portrait for 90 days.
+      </div>
+    </div>
+  </div>
+  <p style="font-size:0.85rem; text-align:center; margin-top: 1rem;">
+    Upgrade after delivery. No commitment upfront beyond Round 1.
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<section id="get-thumbprinted">
+  <div class="early-access">
+    <p class="section-label">Get Thumbprinted</p>
+    <h2 style="margin-bottom: 1rem;">Your portrait starts here.</h2>
+    <p style="max-width: 420px; margin: 0 auto 2rem; font-size: 0.95rem;">
+      Pay securely. Receive your intake link within 24 hours.
+      Complete 8 behavioral questions at your own pace.
+      Portrait delivered within 5 business days.
+    </p>
+    <a href="https://buy.stripe.com/28E6oGbrv4tbamN9dRcs800" class="btn-primary" style="margin-bottom: 1rem; display: inline-block;">
+      Get Thumbprinted — $299
+    </a>
+    <br><br>
+    <p style="font-size: 0.8rem; color: var(--muted); max-width: 360px; margin: 0 auto;">
+      One note: this portrait is designed to be accurate, not comfortable.
+      The blind spot section in particular is written to tell the truth.
+    </p>
+  </div>
+</section>
+
+<footer>
+  Thumbprint is built on the
+  <a href="https://github.com/johnmwhitman/claude-continuity" style="color: var(--accent);">Continuity</a>
+  open source infrastructure. The synthesis methodology is proprietary.
+  <br><br>
+  &copy; 2026 &middot; <a href="mailto:hello@thumbprinted.com" style="color: var(--muted);">hello@thumbprinted.com</a>
+</footer>
+
+</body>
+</html>
